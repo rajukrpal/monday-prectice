@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var dbConnect = require("./db/index");
+const cors = require("cors")
 
 
 var indexRouter = require('./routes/index');
@@ -17,7 +18,11 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use(logger('dev'));
-app.use(express.json());
+app.use(cors({
+  origin:process.env.CROS_ORIGIN,
+  credentials:true
+}));
+app.use(express.json({limit:"15k"}));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
