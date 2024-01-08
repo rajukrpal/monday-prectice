@@ -19,6 +19,7 @@ Desktop.ini
 *.seed
 *.db
 *.sqlite
+*.env
 
 # Editor-specific files
 .vscode/
