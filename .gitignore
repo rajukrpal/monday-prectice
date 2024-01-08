@@ -1,0 +1,32 @@
+# Node.js
+node_modules/
+
+# Dependency directories
+bower_components/
+jspm_packages/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Compiled files
+*.log
+*.bak
+*.pid
+*.seed
+*.db
+*.sqlite
+
+# Editor-specific files
+.vscode/
+.idea/
+
+# OS generated files
+ehthumbs.db
+Icon?
+.DS_Store?
+.AppleDouble
+.LSOverride
