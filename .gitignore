@@ -5,6 +5,13 @@ node_modules/
 bower_components/
 jspm_packages/
 
+
+# .gitignore
+
+# Ignore .env files
+.env
+
+
 # macOS
 .DS_Store
 
