@@ -22,10 +22,13 @@ app.use(cors({
   origin:process.env.CROS_ORIGIN,
   credentials:true
 }));
-app.use(express.json({limit:"15k"}));
+app.use(express.json());
+// app.use(express.json({limit:"15k"}));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+
 
 
 //---------Router decliration
