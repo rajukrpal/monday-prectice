@@ -5,6 +5,19 @@ const userModel = require("../models/userModel")
 const uploadOnCloudinary = require("../utils/cloudnary");
 const ApiResponse = require("../utils/ApiResp")
 
+const generateAccessAndRefreshTokens = async(userId)=>{
+    try {
+        const user = await userModel.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+            user.refreshToken = refreshToken ;
+            await user.save({validateBeforeSkave: false})
+            return {accessToken , refreshToken}
+    } catch (err) {
+        throw new ApiError(500 , " server failed ")
+    }
+}
+
 // const registerUser = asyncHendlar(async(req,res)=>{
 //         await res.status(200).json({
 //         message:"WEB DEVLOPER"
@@ -84,5 +97,77 @@ const registerUser = asyncHendlar(async(req,res)=>{
     )
 
 })
+
+// _________________________________________________________
+// login user
+const loginUser = asyncHendlar(async(req,res)=>{
+        // 1) req.body se data le aao
+        // 2) username or email kis ke base par login krwana hai ? ki dono ?
+        // 3) find the user
+        // 4) password chack
+        // 5) access and refresh token gentet kar ke user ko bhejna hoga
+        // 6) send cookies
+        // 7) send res
+
+        const {userName , email , password} = req.body ;
+        if(!userName || !email){
+            throw new ApiError(400 , "userName and email is required")
+        }
+
+        const user = await userModel.findOne({
+            $or: [{userName} ,  {email}]
+        })
+        if (!user) {
+            throw new ApiError(404 , "user does not exist")
+        }
+        const isPasswordValid = await user.isPasswordCorrect(password)
+        if (!isPasswordValid) {
+            throw new ApiError(401 , "Passwerd dose not meatch")
+        }
+        const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
+
+        const loggedInUser = await userModel.findById(user._id).select(
+            "-password -refreshToken"
+        )
+            const option = {
+                httpOnly:true,
+                secure: true,
+            }
+            return res.status(200).cookie(
+                "accessToken",accessToken,option
+            ).cookie(
+                "refreshToken",refreshToken,option
+            ).json(
+                new ApiResponse(200 , {user:loggedInUser,accessToken,refreshToken}, "user loggedIn Successfullu     ")
+            )
+})
+
+// logout user
+const logoutUser = asyncHendlar(async(req,res)=>{
+        // cookies cleare karo
+        await userModel.findByIdAndUpdate(
+            req.user._id ,
+            {
+                $set: {
+                    refreshToken:undefined
+                }
+            },{
+                new:true
+            }
+        )
+        const option = {
+            httpOnly:true,
+            secure: true,
+        }
+        res.status(200)
+        .clearCookie("accessToken",option)
+        .clearCookie("refreshToken",option)
+        .json(new ApiResponse(200,{},"user logout successful"))
+    })
+
+module.exports = logoutUser ;
+
+module.exports = loginUser ;
+// _________________________________________________________________
 
 module.exports = registerUser ;
