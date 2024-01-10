@@ -16,7 +16,7 @@ const registerUser = asyncHendlar(async(req,res)=>{
     // 1) get user details from frontend -----> (use postman)
             // user detail (req.body) ke andar mil jati hai
             const {userName,email,fullName,password}  = req.body;
-    console.log("email",email )
+            // console.log(req.body)
     // 2) validation -----> ( not empty )
 
     // if (fullName === "") {
@@ -39,12 +39,21 @@ const registerUser = asyncHendlar(async(req,res)=>{
         }
     // 4) // chack file le rahe hai kya? ha to dekho chack for images chack for avatar
        const avatarLocalPath =  req.files?.avatar[0]?.path // multar ne jo path upload kiya hai wo mil jaye ga
-       const coverImageLocalPath = req.files.coverImage[0]?.path;
-       if (!avatarLocalPath) {
-         throw new ApiError(400, "Avatar file is required")
-       }
+       // ------------------
+        // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+        // ------------------------
+        let coverImageLocalPath;
+        if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+                coverImageLocalPath = req.files.coverImage[0].path
+        }
+        // console.log(req.files)
+        if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required")
+        }
+        // console.log(avatarLocalPath) // public\temp\imgName.jpg
     // 5) upload then cloudinary
         const avatar = await uploadOnCloudinary(avatarLocalPath)
+
         const coverImage = await uploadOnCloudinary(coverImageLocalPath)
         if (!avatar) {
             throw new ApiError(409, "user with email or userName already exists")
@@ -52,15 +61,16 @@ const registerUser = asyncHendlar(async(req,res)=>{
     // 6) cloudinary par success uplode huaa ki nahi 
     // 7) create user object - create  entry in db
         const user = await userModel.create({
-            userName:toLowerCase(),
+            userName,
             email,
             fullName,
             password,
             avatar: avatar.url, // avtar 100% lena hai abhi ke liye to avtar.url likhahai 
             coverImage: coverImage?.url || "" // kyu ki ye fild required nahi thi
         })
+        // console.log(user) // jo jo enter karege wo wo show hoga
         // 8) remove password and refresh tocen field from response
-        const createdUser = await user.findById(user._id).select(
+        const createdUser = await userModel.findById(user._id).select(
             "-password -refreshToken"
         )
         // 9) check for user creation
@@ -69,8 +79,8 @@ const registerUser = asyncHendlar(async(req,res)=>{
         }
     // 10) return (res)
     // res.status(200).json({createdUser})
-    res.status(200).json(
-        new ApiResponse(200,createdUser,"user registar successfully")
+    res.status(201).json(
+        new ApiResponse(200 ,createdUser,"user registar successfully")
     )
 
 })
